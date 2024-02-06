@@ -35,15 +35,12 @@ impl<T> Tree<T> {
     pub fn add_node(&mut self, node: T, parent_id: Option<usize>) -> Option<usize> {
         let node_id = self.nodes.len();
 
-        // if the node claims to have a parent, validate that it exists;
-        // if it does, then add the new node to the children array of the parent.
+        // validate the node's parent, then add the new node to the parent's children array.
         if let Some(parent_id) = parent_id {
             self.children.get_mut(parent_id)?.push(node_id);
         }
 
-        // next, add the node to the nodes array,
-        // add an empty vector to hold its children,
-        // and add a None value to the parents array.
+        // add the node to the nodes array, add the parent_id and an empty children vector.
         self.nodes.push(node);
         self.parents.push(parent_id);
         self.children.push(Vec::new());
