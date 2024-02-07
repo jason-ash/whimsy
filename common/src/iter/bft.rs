@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 
 pub struct BreadthFirstIterator<'a, C, T>
 where
-    C: Traverse<T> + 'a,
+    C: Traverse<'a, T>,
     T: 'a,
 {
     collection: &'a C,
@@ -12,7 +12,7 @@ where
 
 impl<'a, C, T> Iterator for BreadthFirstIterator<'a, C, T>
 where
-    C: Traverse<T> + 'a,
+    C: Traverse<'a, T>,
     T: 'a,
 {
     type Item = &'a T;
