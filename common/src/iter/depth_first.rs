@@ -1,9 +1,9 @@
-use crate::traits::Traverse;
+use crate::traits::Hierarchy;
 use std::collections::VecDeque;
 
 pub struct DepthFirstIterator<'a, C, T>
 where
-    C: Traverse<'a, T>,
+    C: Hierarchy<T>,
     T: 'a,
 {
     collection: &'a C,
@@ -12,7 +12,7 @@ where
 
 impl<'a, C, T> DepthFirstIterator<'a, C, T>
 where
-    C: Traverse<'a, T>,
+    C: Hierarchy<T>,
     T: 'a,
 {
     pub fn new(collection: &'a C, start: &'a T) -> Self {
@@ -24,7 +24,7 @@ where
 
 impl<'a, C, T> Iterator for DepthFirstIterator<'a, C, T>
 where
-    C: Traverse<'a, T>,
+    C: Hierarchy<T>,
     T: 'a,
 {
     type Item = &'a T;

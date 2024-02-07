@@ -1,15 +1,11 @@
 use crate::iter::{BreadthFirstIterator, DepthFirstIterator, TraverseByIterator};
 use std::cmp::Ordering;
 
-pub trait Traverse<'a, T: 'a>
-where
-    Self: Sized,
-{
-    type DepthFirstIterator: Iterator<Item = &'a T>;
-    type TraverseByIterator: Iterator<Item = &'a T>;
-
+pub trait Hierarchy<T> {
     fn children(&self, item: &T) -> Vec<&T>;
+}
 
+pub trait Traverse<'a, T: 'a>: Sized + Hierarchy<T> {
     fn breadth_first_iter(&'a self, start: &'a T) -> BreadthFirstIterator<'a, Self, T> {
         BreadthFirstIterator::new(self, start)
     }
@@ -25,3 +21,5 @@ where
         TraverseByIterator::new(self, start, evaluate)
     }
 }
+
+impl<'a, T, U: 'a> Traverse<'a, U> for T where T: Hierarchy<U> {}
