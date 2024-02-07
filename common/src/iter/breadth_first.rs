@@ -1,5 +1,4 @@
 use crate::traits::Traverse;
-use std::collections::VecDeque;
 
 pub struct BreadthFirstIterator<'a, C, T>
 where
@@ -7,7 +6,7 @@ where
     T: 'a,
 {
     collection: &'a C,
-    queue: VecDeque<&'a T>,
+    queue: Vec<&'a T>,
 }
 
 impl<'a, C, T> Iterator for BreadthFirstIterator<'a, C, T>
@@ -18,7 +17,7 @@ where
     type Item = &'a T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        while let Some(item) = self.queue.pop_front() {
+        while let Some(item) = self.queue.pop() {
             let children = self.collection.children(item);
             self.queue.extend(children);
             return Some(item);
