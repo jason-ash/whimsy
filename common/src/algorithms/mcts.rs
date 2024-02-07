@@ -1,3 +1,5 @@
+use crate::collections::Tree;
+
 /// implement Node on the objects stored in the tree, for example a game state, and
 /// make sure it has fields like `visits` and `score` for the mcts calculations.
 pub trait Node {
@@ -15,7 +17,7 @@ pub trait Node {
 }
 
 pub trait Select {
-    fn select(&self) -> usize;
+    fn select(&self, node_id: Option<usize>, c: f64) -> Option<usize>;
 }
 
 pub trait Expand {
@@ -32,4 +34,28 @@ pub trait Backpropagate {
 
 pub trait MonteCarloTreeSearch: Select + Expand + Simulate + Backpropagate {
     fn run(&mut self, iterations: u32);
+}
+
+impl<T: Node> Select for Tree<T> {
+    fn select(&self, node_id: Option<usize>, c: f64) -> Option<usize> {
+        let node_id = node_id.unwrap_or(0);
+        let parent_visits = 10;
+
+        // TODO... abstract this into a Traverse trait on the tree itself.
+        // let node_id = if self.is_leaf(node_id)? {
+        //     node_id
+        // } else {
+        //     self.get_children_ids(node_id)?
+        //         .iter()
+        //         .map(|&id| {
+        //             let uct = self.get_node(id)?.uct(c, parent_visits);
+        //             Some((id, uct))
+        //         })
+        //         .flatten()
+        //         .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal))
+        //         .map(|(id, _)| id)?
+        // };
+
+        todo!()
+    }
 }
