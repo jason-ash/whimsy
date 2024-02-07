@@ -1,4 +1,5 @@
-use crate::iter::BreadthFirstIterator;
+use crate::iter::{BreadthFirstIterator, TraverseByIterator};
+use std::cmp::Ordering;
 
 pub trait Traverse<'a, T: 'a>
 where
@@ -9,13 +10,16 @@ where
 
     fn children(&self, item: &T) -> Vec<&T>;
 
-    fn breadth_first_iter(&'a self, start: &T) -> BreadthFirstIterator<'a, Self, T> {
+    fn breadth_first_iter(&'a self, start: &'a T) -> BreadthFirstIterator<'a, Self, T> {
         BreadthFirstIterator::new(self, start)
     }
 
     fn depth_first_iter(&self, start: &T) -> Self::DepthFirstIterator;
 
-    fn traverse_by<F>(&self, start: &T, evaluate: F) -> Self::TraverseByIterator
+    fn traverse_by<F>(&'a self, start: &'a T, evaluate: F) -> TraverseByIterator<'a, Self, T, F>
     where
-        F: Fn(&T, &T) -> std::cmp::Ordering;
+        F: Fn(&T, &T) -> Ordering,
+    {
+        TraverseByIterator::new(self, start, evaluate)
+    }
 }
