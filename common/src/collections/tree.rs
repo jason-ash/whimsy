@@ -14,14 +14,6 @@ impl<T> Tree<T> {
         self.nodes.get_mut(node_id)
     }
 
-    pub fn get_parent_id(&self, node_id: usize) -> Option<usize> {
-        self.parents.get(node_id)?.to_owned()
-    }
-
-    pub fn get_children_ids(&self, node_id: usize) -> Option<&[usize]> {
-        self.children.get(node_id).map(Vec::as_slice)
-    }
-
     pub fn add_node(&mut self, node: T, parent_id: Option<usize>) -> Option<usize> {
         let node_id = self.nodes.len();
 
@@ -37,34 +29,6 @@ impl<T> Tree<T> {
 
         Some(node_id)
     }
-}
-
-pub trait Traverse<T> {
-    type NodeId: Clone;
-
-    fn get_children_ids(&self, node_id: Self::NodeId) -> Vec<Self::NodeId>;
-
-    fn is_leaf(&self, node_id: Self::NodeId) -> bool {
-        self.get_children_ids(node_id).is_empty()
-    }
-
-    fn breadth_first_iter(&self, start: Self::NodeId) -> Vec<Self::NodeId> {
-        let mut nodes = Vec::from([start.clone()]);
-        let mut queue = Vec::from([start]);
-
-        while let Some(node_id) = queue.pop() {
-            let children = self.get_children_ids(node_id);
-            nodes.extend(children.clone());
-            queue.extend(children);
-        }
-        nodes
-    }
-
-    fn depth_first_iter(&self, start: Self::NodeId) -> Vec<Self::NodeId>;
-
-    fn traverse_by<F>(&self, start: Self::NodeId, evaluate: F) -> Vec<Self::NodeId>
-    where
-        F: Fn(&T, &T) -> std::cmp::Ordering;
 }
 
 #[cfg(test)]
