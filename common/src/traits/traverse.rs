@@ -23,3 +23,41 @@ pub trait Traverse<'a, T: 'a>: Sized + Hierarchy<T> {
 }
 
 impl<'a, T, U: 'a> Traverse<'a, U> for T where T: Hierarchy<U> {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[derive(Debug)]
+    struct Tree(&'static str, &'static [Tree]);
+
+    impl Hierarchy<Tree> for Tree {
+        fn children(&self, item: &Tree) -> Vec<&Tree> {
+            item.1.iter().collect()
+        }
+    }
+
+    const TREE: Tree = Tree(
+        "0",
+        &[
+            Tree("1", &[Tree("3", &[]), Tree("4", &[])]),
+            Tree(
+                "2",
+                &[
+                    Tree("5", &[Tree("7", &[]), Tree("8", &[])]),
+                    Tree("6", &[Tree("9", &[])]),
+                ],
+            ),
+        ],
+    );
+
+    #[test]
+    fn breadth_first() {
+        let expected = vec!["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+        let actual = TREE
+            .breadth_first_iter(&TREE) // TODO this is the whole tree, not just the first node...
+            .map(|node| node.0)
+            .collect::<Vec<_>>();
+        assert_eq!(actual, expected);
+    }
+}
