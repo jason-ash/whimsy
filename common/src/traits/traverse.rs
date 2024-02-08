@@ -60,4 +60,29 @@ mod tests {
             .collect::<Vec<_>>();
         assert_eq!(actual, expected);
     }
+
+    #[test]
+    fn depth_first() {
+        let expected = vec!["0", "1", "3", "4", "2", "5", "7", "8", "6", "9"];
+        let actual = TREE
+            .depth_first_iter(&TREE) // TODO this is the whole tree, not just the first node...
+            .map(|node| node.0)
+            .collect::<Vec<_>>();
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn traverse_by() {
+        let expected = vec!["0", "2", "6", "9"];
+        let evaluate = |a: &Tree, b: &Tree| {
+            let a = a.0.parse::<usize>().unwrap();
+            let b = b.0.parse::<usize>().unwrap();
+            a.cmp(&b)
+        };
+        let actual = TREE
+            .traverse_by(&TREE, evaluate) // TODO this is the whole tree, not just the first node...
+            .map(|node| node.0)
+            .collect::<Vec<_>>();
+        assert_eq!(actual, expected);
+    }
 }
