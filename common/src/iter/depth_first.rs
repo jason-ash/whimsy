@@ -31,8 +31,12 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(item) = self.queue.pop_front() {
-            todo!();
+            for child in self.collection.children(item).into_iter().rev() {
+                self.queue.push_front(child);
+            }
+            Some(item)
+        } else {
+            None
         }
-        None
     }
 }
