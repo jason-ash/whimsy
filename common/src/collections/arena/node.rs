@@ -1,3 +1,4 @@
+#[derive(Debug, Clone)]
 pub struct NodeId(usize);
 
 pub struct Node<T> {
@@ -8,18 +9,18 @@ pub struct Node<T> {
 
 impl<T> Node<T> {
     pub fn data(&self) -> &T {
-        todo!()
+        &self.data
     }
 
     pub fn data_mut(&mut self) -> &mut T {
-        todo!()
+        &mut self.data
     }
 
     pub fn parent(&self) -> Option<NodeId> {
-        todo!()
+        self.parent.clone()
     }
 
     pub fn children(&self) -> &[NodeId] {
-        todo!()
+        self.children.as_slice()
     }
 }
