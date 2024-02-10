@@ -1,14 +1,17 @@
-use super::{ArenaTree, Node};
+use super::{ArenaTree, Node, NodeId};
 
-pub struct AncestorIterator<'a, T> {
+pub struct ParentIterator<'a, T> {
     tree: &'a ArenaTree<T>,
+    node_id: Option<NodeId>,
 }
 
-impl<'a, T> Iterator for AncestorIterator<'a, T> {
-    type Item = &'a Node<T>;
+impl<'a, T> Iterator for ParentIterator<'a, T> {
+    type Item = NodeId;
 
     fn next(&mut self) -> Option<Self::Item> {
-        todo!()
+        let out = self.node_id.take()?;
+        self.node_id = self.tree.get(out).and_then(|node| node.parent());
+        Some(out)
     }
 }
 
