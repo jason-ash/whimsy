@@ -1,4 +1,4 @@
-use super::{traverse::ChildrenIterator, AncestorIterator, ArenaTree};
+use super::{AncestorIterator, ArenaTree};
 
 #[derive(Debug, Clone, Copy)]
 pub struct NodeId(usize);
