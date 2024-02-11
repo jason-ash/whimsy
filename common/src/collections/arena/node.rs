@@ -1,5 +1,13 @@
+use super::{traverse::ChildrenIterator, AncestorIterator, ArenaTree};
+
 #[derive(Debug, Clone, Copy)]
 pub struct NodeId(usize);
+
+impl NodeId {
+    pub fn ancestors<'a, T>(self, tree: &'a ArenaTree<T>) -> AncestorIterator<'a, T> {
+        AncestorIterator::new(tree, self)
+    }
+}
 
 pub struct Node<T> {
     data: T,
@@ -17,7 +25,7 @@ impl<T> Node<T> {
     }
 
     pub fn parent(&self) -> Option<NodeId> {
-        self.parent.clone()
+        self.parent
     }
 
     pub fn children(&self) -> &[NodeId] {
