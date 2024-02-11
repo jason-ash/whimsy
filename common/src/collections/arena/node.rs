@@ -7,6 +7,14 @@ pub struct Node<T> {
 }
 
 impl<T> Node<T> {
+    pub(super) fn new(data: T, parent: Option<NodeId>) -> Self {
+        Self {
+            data,
+            parent,
+            children: Vec::new(),
+        }
+    }
+
     pub fn data(&self) -> &T {
         &self.data
     }

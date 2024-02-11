@@ -6,10 +6,6 @@ use super::{traverse::TraverseByIterator, AncestorIterator, Tree};
 pub struct NodeId(pub(super) usize);
 
 impl NodeId {
-    pub fn append<T>(self, child: NodeId, tree: &mut Tree<T>) {
-        todo!()
-    }
-
     pub fn ancestors<'a, T>(self, tree: &'a Tree<T>) -> AncestorIterator<'a, T> {
         AncestorIterator::new(tree, self)
     }
