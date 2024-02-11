@@ -9,9 +9,9 @@ impl<'a, T> Iterator for ParentIterator<'a, T> {
     type Item = NodeId;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let out = self.node_id.take()?;
-        self.node_id = self.tree.get(out).and_then(|node| node.parent());
-        Some(out)
+        let current = self.node_id.take()?;
+        self.node_id = self.tree.get(current).and_then(Node::parent);
+        Some(current)
     }
 }
 
