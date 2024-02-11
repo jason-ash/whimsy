@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use super::{Node, NodeId, Tree};
 
 pub struct AncestorIterator<'a, T> {
@@ -21,5 +23,25 @@ impl<'a, T> Iterator for AncestorIterator<'a, T> {
         let current = self.node.take()?;
         self.node = self.tree.get(current).and_then(Node::parent);
         Some(current)
+    }
+}
+
+pub struct TraverseByIterator<'a, T, F>
+where
+    F: Fn(&T, &T) -> Ordering,
+{
+    tree: &'a Tree<T>,
+    node: Option<NodeId>,
+    f: F,
+}
+
+impl<'a, T, F> Iterator for TraverseByIterator<'a, T, F>
+where
+    F: Fn(&T, &T) -> Ordering,
+{
+    type Item = NodeId;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        todo!()
     }
 }

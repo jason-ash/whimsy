@@ -1,3 +1,5 @@
+use std::ops::{Index, IndexMut};
+
 use super::{Node, NodeId};
 
 pub struct Tree<T> {
@@ -14,15 +16,11 @@ impl<T> Tree<T> {
     }
 
     pub fn get(&self, id: NodeId) -> Option<&Node<T>> {
-        todo!()
+        self.nodes.get(id.0)
     }
 
     pub fn get_mut(&mut self, id: NodeId) -> Option<&mut Node<T>> {
-        todo!()
-    }
-
-    pub fn get_id(&self, node: &Node<T>) -> Option<NodeId> {
-        todo!()
+        self.nodes.get_mut(id.0)
     }
 }
 
@@ -31,5 +29,19 @@ impl<T> Default for Tree<T> {
         Self {
             nodes: Vec::default(),
         }
+    }
+}
+
+impl<T> Index<NodeId> for Tree<T> {
+    type Output = Node<T>;
+
+    fn index(&self, index: NodeId) -> &Self::Output {
+        &self.nodes[index.0]
+    }
+}
+
+impl<T> IndexMut<NodeId> for Tree<T> {
+    fn index_mut(&mut self, index: NodeId) -> &mut Self::Output {
+        &mut self.nodes[index.0]
     }
 }
