@@ -1,10 +1,10 @@
 use super::{Node, NodeId};
 
-pub struct ArenaTree<T> {
+pub struct Tree<T> {
     nodes: Vec<Node<T>>,
 }
 
-impl<T> ArenaTree<T> {
+impl<T> Tree<T> {
     pub fn new() -> Self {
         Self::default()
     }
@@ -26,7 +26,7 @@ impl<T> ArenaTree<T> {
     }
 }
 
-impl<T> Default for ArenaTree<T> {
+impl<T> Default for Tree<T> {
     fn default() -> Self {
         Self {
             nodes: Vec::default(),

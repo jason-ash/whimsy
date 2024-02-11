@@ -1,13 +1,4 @@
-use super::{AncestorIterator, ArenaTree};
-
-#[derive(Debug, Clone, Copy)]
-pub struct NodeId(usize);
-
-impl NodeId {
-    pub fn ancestors<'a, T>(self, tree: &'a ArenaTree<T>) -> AncestorIterator<'a, T> {
-        AncestorIterator::new(tree, self)
-    }
-}
+use super::NodeId;
 
 pub struct Node<T> {
     data: T,

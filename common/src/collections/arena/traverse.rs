@@ -1,12 +1,12 @@
-use super::{ArenaTree, Node, NodeId};
+use super::{Node, NodeId, Tree};
 
 pub struct AncestorIterator<'a, T> {
-    tree: &'a ArenaTree<T>,
+    tree: &'a Tree<T>,
     node: Option<NodeId>,
 }
 
 impl<'a, T> AncestorIterator<'a, T> {
-    pub fn new(tree: &'a ArenaTree<T>, current: NodeId) -> Self {
+    pub fn new(tree: &'a Tree<T>, current: NodeId) -> Self {
         Self {
             tree,
             node: Some(current),
