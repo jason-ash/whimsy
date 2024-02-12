@@ -1,4 +1,4 @@
-use super::{traverse::TraverseByIterator, AncestorIterator, Tree};
+use super::{traverse::TraverseByIterator, AncestorIterator, Node, Tree};
 use std::cmp::Ordering;
 
 #[derive(Debug, Clone, Copy)]
@@ -15,7 +15,7 @@ impl NodeId {
         evaluate: F,
     ) -> TraverseByIterator<'a, T, F>
     where
-        F: Fn(&T, &T) -> Ordering,
+        F: Fn(&Node<T>, &Node<T>) -> Ordering,
     {
         todo!()
     }

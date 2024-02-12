@@ -27,7 +27,7 @@ impl<'a, T> Iterator for AncestorIterator<'a, T> {
 
 pub struct TraverseByIterator<'a, T, F>
 where
-    F: Fn(&T, &T) -> Ordering,
+    F: Fn(&Node<T>, &Node<T>) -> Ordering,
 {
     tree: &'a Tree<T>,
     node: Option<NodeId>,
@@ -36,11 +36,19 @@ where
 
 impl<'a, T, F> Iterator for TraverseByIterator<'a, T, F>
 where
-    F: Fn(&T, &T) -> Ordering,
+    F: Fn(&Node<T>, &Node<T>) -> Ordering,
 {
     type Item = NodeId;
 
     fn next(&mut self) -> Option<Self::Item> {
-        todo!()
+        let current = self.node.take()?;
+        let k = self.tree.get(current).map(Node::children).map(|children| {
+            children
+                .into_iter()
+                .filter_map(|&id| self.tree.get(id))
+                .max_by(|a, b| (self.f)(a, b))
+        });
+
+        Some(current)
     }
 }
