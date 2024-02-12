@@ -1,6 +1,5 @@
-use std::cmp::Ordering;
-
 use super::{traverse::TraverseByIterator, AncestorIterator, Tree};
+use std::cmp::Ordering;
 
 #[derive(Debug, Clone, Copy)]
 pub struct NodeId(pub(super) usize);

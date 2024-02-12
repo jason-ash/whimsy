@@ -1,6 +1,5 @@
-use std::ops::{Index, IndexMut};
-
 use super::{Node, NodeId};
+use std::ops::{Index, IndexMut};
 
 pub struct Tree<T> {
     nodes: Vec<Node<T>>,

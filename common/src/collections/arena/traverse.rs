@@ -1,6 +1,5 @@
-use std::cmp::Ordering;
-
 use super::{Node, NodeId, Tree};
+use std::cmp::Ordering;
 
 pub struct AncestorIterator<'a, T> {
     tree: &'a Tree<T>,
