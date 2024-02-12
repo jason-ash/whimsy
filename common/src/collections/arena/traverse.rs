@@ -55,13 +55,17 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         let current = self.node.take()?;
-        let k = self.tree.get(current).map(Node::children).map(|children| {
-            children
-                .into_iter()
-                .filter_map(|&id| self.tree.get(id))
-                .max_by(|a, b| (self.f)(a, b))
-        });
-
+        self.node = self
+            .tree
+            .get(current)
+            .map(Node::children)
+            .and_then(|children| {
+                children
+                    .into_iter()
+                    .filter_map(|&id| self.tree.get(id).map(|node| (id, node)))
+                    .max_by(|a, b| (self.f)(a.1, b.1))
+            })
+            .map(|(id, _)| id);
         Some(current)
     }
 }

@@ -1,5 +1,8 @@
 use super::{Node, NodeId};
-use std::ops::{Index, IndexMut};
+use std::{
+    fmt::Debug,
+    ops::{Index, IndexMut},
+};
 
 pub struct Tree<T> {
     nodes: Vec<Node<T>>,
@@ -11,25 +14,12 @@ impl<T> Tree<T> {
     }
 
     pub fn insert(&mut self, data: T, parent: Option<NodeId>) -> Option<NodeId> {
-        // if the parent is None, then validate we don't already have a root node; otherwise
-        // if the parent is Some(id), then validate that the node already exists in the tree.
-        match parent {
-            Some(id) => {
-                if self.get(id).is_none() {
-                    return None;
-                }
-            }
-            None => {
-                if !self.nodes.is_empty() {
-                    return None;
-                }
-            }
-        }
-
-        let node = Node::new(data, parent);
-        let node_id = NodeId(self.nodes.len());
-        self.nodes.push(node);
-        Some(node_id)
+        let id = NodeId(self.nodes.len());
+        parent
+            .and_then(|id| self.get_mut(id))
+            .map(|node| node.children.push(id));
+        self.nodes.push(Node::new(data, parent));
+        Some(id)
     }
 
     pub fn get(&self, id: NodeId) -> Option<&Node<T>> {
@@ -46,6 +36,12 @@ impl<T> Default for Tree<T> {
         Self {
             nodes: Vec::default(),
         }
+    }
+}
+
+impl<T: Debug> Debug for Tree<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Tree").field("nodes", &self.nodes).finish()
     }
 }
 
@@ -68,17 +64,43 @@ mod tests {
     use super::*;
 
     #[test]
-    fn create_tree() {
+    fn validate_sample_tree() {
         let mut tree = Tree::<u8>::default();
-        let root = tree.insert(0, None);
-        let child0_1 = tree.insert(1, root);
-        let child0_2 = tree.insert(2, root);
-        let child1_3 = tree.insert(3, child0_1);
-        let child1_4 = tree.insert(4, child0_1);
-        let child2_5 = tree.insert(5, child0_2);
-        let child2_6 = tree.insert(6, child0_2);
-        let child5_7 = tree.insert(7, child2_5);
-        let child5_8 = tree.insert(8, child2_5);
-        let child6_9 = tree.insert(8, child2_6);
+        let node0 = tree.insert(0, None);
+        let node1 = tree.insert(1, node0);
+        let node2 = tree.insert(2, node0);
+        let _node3 = tree.insert(3, node1);
+        let _node4 = tree.insert(4, node1);
+        let node5 = tree.insert(5, node2);
+        let node6 = tree.insert(6, node2);
+        let _node7 = tree.insert(7, node5);
+        let _node8 = tree.insert(8, node6);
+        let node9 = tree.insert(9, node6);
+
+        let expected = vec![9, 6, 2, 0];
+        let ancestors = node9
+            .unwrap()
+            .ancestors(&tree)
+            .filter_map(|id| tree.get(id).map(Node::data).cloned())
+            .collect::<Vec<_>>();
+        assert_eq!(ancestors, expected);
+
+        let expected = vec![1, 2];
+        let children = node0
+            .and_then(|id| tree.get(id))
+            .map(Node::children)
+            .unwrap_or_default()
+            .into_iter()
+            .filter_map(|&id| tree.get(id).map(Node::data).cloned())
+            .collect::<Vec<_>>();
+        assert_eq!(children, expected);
+
+        let expected = vec![0, 2, 6, 9];
+        let max_value_children = node0
+            .unwrap()
+            .traverse_by(&tree, |a, b| a.data().cmp(b.data()))
+            .filter_map(|id| tree.get(id).map(Node::data).cloned())
+            .collect::<Vec<_>>();
+        assert_eq!(max_value_children, expected);
     }
 }
