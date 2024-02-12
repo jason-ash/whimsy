@@ -34,6 +34,19 @@ where
     f: F,
 }
 
+impl<'a, T, F> TraverseByIterator<'a, T, F>
+where
+    F: Fn(&Node<T>, &Node<T>) -> Ordering,
+{
+    pub fn new(tree: &'a Tree<T>, current: NodeId, evaluate: F) -> Self {
+        Self {
+            tree,
+            node: Some(current),
+            f: evaluate,
+        }
+    }
+}
+
 impl<'a, T, F> Iterator for TraverseByIterator<'a, T, F>
 where
     F: Fn(&Node<T>, &Node<T>) -> Ordering,

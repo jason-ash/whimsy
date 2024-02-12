@@ -17,6 +17,6 @@ impl NodeId {
     where
         F: Fn(&Node<T>, &Node<T>) -> Ordering,
     {
-        todo!()
+        TraverseByIterator::new(tree, self, evaluate)
     }
 }
