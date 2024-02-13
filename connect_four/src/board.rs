@@ -1,6 +1,5 @@
-use std::fmt::{Debug, Display};
-
 use nanorand::Rng;
+use std::fmt::{Debug, Display};
 
 /// the Connect Four board. contains cells numbered 0 through 41.
 /// |  0 |  1 |  2 |  3 |  4 |  5 |  6 |
