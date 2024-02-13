@@ -12,7 +12,7 @@ fn main() {
     let node6 = tree.insert(6, node2);
     let _node7 = tree.insert(7, node5);
     let _node8 = tree.insert(8, node6);
-    let node9 = tree.insert(9, node6);
+    let _node9 = tree.insert(9, node6);
 
     println!("{:?}", tree);
 
