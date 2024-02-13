@@ -1,3 +1,4 @@
+use common::GameState;
 use nanorand::Rng;
 use std::fmt::{Debug, Display};
 

@@ -1,3 +1,3 @@
 mod arena;
 
-pub use arena::Tree;
+pub use arena::{NodeId, Tree};
