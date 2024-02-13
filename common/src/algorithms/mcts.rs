@@ -11,10 +11,13 @@ pub trait GameState
 where
     Self: Sized,
 {
+    type Player;
     type GameAction;
     type ActionIter: IntoIterator<Item = Self::GameAction>;
+    type RewardIter: IntoIterator<Item = (Self::Player, f32)>;
 
     fn update(&self, action: Self::GameAction) -> Self;
-    fn outcome(&self) -> Option<&[f64]>;
+    fn outcome(&self) -> Option<Self::RewardIter>;
     fn action_iter(&self) -> Self::ActionIter;
+    fn current_player(&self) -> Self::Player;
 }
