@@ -12,41 +12,37 @@ pub trait MonteCarloNode<T: GameState> {
 
 pub trait GameState
 where
-    Self: Clone + Sized,
+    Self: Sized,
 {
     type Player;
     type GameAction;
     type ActionIter: Iterator<Item = Self::GameAction>;
     type RewardIter: Iterator<Item = (Self::Player, f32)>;
 
-    fn update(&self, action: Self::GameAction) -> Self;
+    fn update(self, action: Self::GameAction) -> Self;
     fn outcome(&self) -> Option<Self::RewardIter>;
     fn action_iter(&self) -> Self::ActionIter;
     fn current_player(&self) -> Self::Player;
-}
 
-pub fn rollout<T, R, const OUTPUT: usize>(state: &T, rng: &mut R) -> Option<T::RewardIter>
-where
-    T: GameState,
-    R: Rng<OUTPUT>,
-{
-    let mut current = state.clone();
-
-    loop {
-        if let Some(outcome) = current.outcome() {
-            return Some(outcome);
-        }
-
-        let action = {
-            let mut actions = current.action_iter().collect::<Vec<_>>();
-            if actions.is_empty() {
-                None
-            } else {
-                let index = rng.generate_range(0..actions.len());
-                Some(actions.swap_remove(index))
+    fn rollout<R, const OUTPUT: usize>(self, rng: &mut R) -> Option<Self::RewardIter>
+    where
+        R: Rng<OUTPUT>,
+    {
+        let mut state = self;
+        loop {
+            if let Some(outcome) = state.outcome() {
+                return Some(outcome);
             }
-        }?;
-
-        current = current.update(action);
+            let action = {
+                let mut actions = state.action_iter().collect::<Vec<_>>();
+                if actions.is_empty() {
+                    None
+                } else {
+                    let index = rng.generate_range(0..actions.len());
+                    Some(actions.swap_remove(index))
+                }
+            }?;
+            state = state.update(action);
+        }
     }
 }
