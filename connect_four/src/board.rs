@@ -2,6 +2,81 @@ use common::GameState;
 use nanorand::Rng;
 use std::fmt::{Debug, Display};
 
+#[derive(Debug, Clone)]
+pub struct Game {
+    board: Board<Option<Checker>>,
+    previous_move: Option<(Checker, usize)>,
+    score: Vec<(Checker, f32)>,
+    visits: u32,
+}
+
+impl Default for Game {
+    fn default() -> Self {
+        Self {
+            board: Board::<Option<Checker>>::default(),
+            previous_move: None,
+            score: vec![(Checker::Red, 0.0), (Checker::Yellow, 0.0)],
+            visits: 0,
+        }
+    }
+}
+
+impl Game {
+    pub fn update(self, action: usize) -> Self {
+        let new_board = self
+            .board
+            .play_move(self.board.current_player().unwrap(), action)
+            .unwrap();
+        Self {
+            board: new_board,
+            previous_move: Some((self.board.current_player().unwrap(), action)),
+            score: self.score,
+            visits: self.visits,
+        }
+    }
+}
+
+impl GameState for Game {
+    type Player = Checker;
+    type GameAction = usize;
+
+    fn score(&self) -> Vec<(Self::Player, f32)> {
+        self.score.clone()
+    }
+
+    fn set_score(&mut self, score: Vec<(Self::Player, f32)>) {
+        self.score = score;
+    }
+
+    fn visits(&self) -> u32 {
+        self.visits
+    }
+
+    fn set_visits(&mut self, visits: u32) {
+        self.visits = visits;
+    }
+
+    fn current_player(&self) -> Self::Player {
+        self.board.current_player().unwrap()
+    }
+
+    fn previous_move(&self) -> Option<&(Self::Player, Self::GameAction)> {
+        self.previous_move.as_ref()
+    }
+
+    fn action_iter(&self) -> Vec<Self::GameAction> {
+        self.board.available_moves()
+    }
+
+    fn update(self, action: Self::GameAction) -> Self {
+        self.update(action)
+    }
+
+    fn outcome(&self) -> Option<Vec<(Self::Player, f32)>> {
+        self.board.outcome()
+    }
+}
+
 /// the Connect Four board. contains cells numbered 0 through 41.
 /// |  0 |  1 |  2 |  3 |  4 |  5 |  6 |
 /// |  7 |  8 |  9 | 10 | 11 | 12 | 13 |
@@ -10,7 +85,7 @@ use std::fmt::{Debug, Display};
 /// | 28 | 29 | 30 | 31 | 32 | 33 | 34 |
 /// | 35 | 36 | 37 | 38 | 39 | 40 | 41 |
 /// ====================================
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Board<T> {
     cells: [T; 42],
 }
@@ -44,6 +119,24 @@ impl Board<Option<Checker>> {
             }
         }
     }
+
+    pub fn outcome(&self) -> Option<Vec<(Checker, f32)>> {
+        FOURS.into_iter().find_map(|indices| {
+            let first = self.cells[indices[0]].as_ref()?;
+            if indices
+                .into_iter()
+                .map(|idx| self.cells[idx].as_ref())
+                .all(|cell| cell == Some(first))
+            {
+                match first {
+                    Checker::Red => Some(vec![(Checker::Red, 1.0), (Checker::Yellow, 0.0)]),
+                    Checker::Yellow => Some(vec![(Checker::Red, 0.0), (Checker::Yellow, 1.0)]),
+                }
+            } else {
+                None
+            }
+        })
+    }
 }
 
 impl<T: Debug + Clone + PartialEq> Board<Option<T>> {
@@ -68,21 +161,6 @@ impl<T: Debug + Clone + PartialEq> Board<Option<T>> {
         (0..7).filter(|&idx| self.cells[idx].is_none()).collect()
     }
 
-    pub fn outcome(&self) -> Option<Outcome<T>> {
-        FOURS.into_iter().find_map(|indices| {
-            let first = self.cells[indices[0]].as_ref()?;
-            if indices
-                .into_iter()
-                .map(|idx| self.cells[idx].as_ref())
-                .all(|cell| cell == Some(first))
-            {
-                Some(Outcome::Win(first.clone()))
-            } else {
-                None
-            }
-        })
-    }
-
     fn next_available(&self, idx: usize) -> Option<usize> {
         let end = idx + 7 * 5 + 1;
         (idx..end)
@@ -93,17 +171,17 @@ impl<T: Debug + Clone + PartialEq> Board<Option<T>> {
     }
 }
 
-#[derive(Debug)]
-pub enum Outcome<T> {
-    Win(T),
-    Loss(T),
-    Tie,
-}
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum Checker {
     Red,
     Yellow,
+}
+
+impl Default for Checker {
+    // red plays first
+    fn default() -> Self {
+        Self::Red
+    }
 }
 
 impl std::fmt::Display for Checker {

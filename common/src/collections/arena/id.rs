@@ -2,7 +2,7 @@ use super::{traverse::TraverseByIterator, AncestorIterator, Node, Tree};
 use std::cmp::Ordering;
 
 #[derive(Debug, Clone, Copy)]
-pub struct NodeId(pub(super) usize);
+pub struct NodeId(pub usize);
 
 impl NodeId {
     pub fn ancestors<'a, T>(self, tree: &'a Tree<T>) -> AncestorIterator<'a, T> {
