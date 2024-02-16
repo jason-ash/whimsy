@@ -146,8 +146,11 @@ pub trait GameState
 where
     Self: Sized,
 {
-    type Player: Debug + PartialEq;
+    type Player: PartialEq;
+    type PlayerIter: IntoIterator<Item = Self::Player>;
     type GameAction;
+
+    fn player_iter(&self) -> Self::PlayerIter;
 
     // these are here temporarily, but probably belong at the `Node` level.
     fn score(&self) -> Vec<(Self::Player, f32)>;

@@ -38,7 +38,12 @@ impl Game {
 
 impl GameState for Game {
     type Player = Checker;
+    type PlayerIter = Vec<Checker>;
     type GameAction = usize;
+
+    fn player_iter(&self) -> Self::PlayerIter {
+        vec![Checker::Red, Checker::Yellow]
+    }
 
     fn score(&self) -> Vec<(Self::Player, f32)> {
         self.score.clone()
