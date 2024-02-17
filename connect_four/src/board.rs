@@ -38,8 +38,9 @@ impl Game {
 
 impl GameState for Game {
     type Player = Checker;
-    type PlayerIter = Vec<Checker>;
-    type GameAction = usize;
+    type Action = usize;
+    type PlayerIter = Vec<Self::Player>;
+    type ActionIter = Vec<(Self::Player, Self::Action)>;
 
     fn player_iter(&self) -> Self::PlayerIter {
         vec![Checker::Red, Checker::Yellow]
@@ -65,15 +66,15 @@ impl GameState for Game {
         self.board.current_player().unwrap()
     }
 
-    fn previous_move(&self) -> Option<&(Self::Player, Self::GameAction)> {
+    fn previous_move(&self) -> Option<&(Self::Player, Self::Action)> {
         self.previous_move.as_ref()
     }
 
-    fn action_iter(&self) -> Vec<Self::GameAction> {
+    fn action_iter(&self) -> Vec<(Self::Player, Self::Action)> {
         self.board.available_moves()
     }
 
-    fn update(self, action: Self::GameAction) -> Self {
+    fn update(self, action: Self::Action) -> Self {
         self.update(action)
     }
 
@@ -111,17 +112,21 @@ impl Board<Option<Checker>> {
         }
     }
 
+    pub fn available_moves(&self) -> Vec<(Checker, usize)> {
+        (0..7)
+            .filter(|&idx| self.cells[idx].is_none())
+            .map(|idx| (self.current_player().unwrap(), idx))
+            .collect()
+    }
+
     pub fn play_random(&self) -> Option<Self> {
         let moves = self.available_moves();
         if moves.is_empty() {
             None
         } else {
             let idx = nanorand::tls_rng().generate_range(0..moves.len());
-            if let Some(checker) = self.current_player() {
-                self.play_move(checker, moves[idx])
-            } else {
-                None
-            }
+            let (player, action) = moves[idx].clone();
+            self.play_move(player, action)
         }
     }
 
@@ -160,10 +165,6 @@ impl<T: Debug + Clone + PartialEq> Board<Option<T>> {
             cells[idx] = Some(item);
             Self { cells }
         })
-    }
-
-    pub fn available_moves(&self) -> Vec<usize> {
-        (0..7).filter(|&idx| self.cells[idx].is_none()).collect()
     }
 
     fn next_available(&self, idx: usize) -> Option<usize> {

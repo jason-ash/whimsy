@@ -1,6 +1,6 @@
 use crate::{collections::NodeId, Tree};
 use nanorand::Rng;
-use std::{cmp::Ordering, fmt::Debug};
+use std::{cmp::Ordering, collections::HashMap, fmt::Debug};
 
 pub struct MonteCarloTree<T: GameState> {
     pub tree: Tree<T>,
@@ -57,7 +57,7 @@ impl<T: GameState + Clone> MonteCarloTree<T> {
         todo!()
     }
 
-    pub fn best_action(&self, node: NodeId) -> Option<T::GameAction> {
+    pub fn best_action(&self, node: NodeId) -> Option<T::Action> {
         // select the child node that maximizes uct
         todo!()
     }
@@ -92,7 +92,7 @@ impl<T: GameState + Clone> MonteCarloTree<T> {
         for child in parent
             .action_iter()
             .into_iter()
-            .map(|action| parent.clone().update(action))
+            .map(|(_, action)| parent.clone().update(action))
         {
             self.tree.insert(child, Some(node));
         }
@@ -147,10 +147,12 @@ where
     Self: Sized,
 {
     type Player: PartialEq;
+    type Action: PartialEq;
     type PlayerIter: IntoIterator<Item = Self::Player>;
-    type GameAction;
+    type ActionIter: IntoIterator<Item = (Self::Player, Self::Action)>;
 
     fn player_iter(&self) -> Self::PlayerIter;
+    fn action_iter(&self) -> Self::ActionIter;
 
     // these are here temporarily, but probably belong at the `Node` level.
     fn score(&self) -> Vec<(Self::Player, f32)>;
@@ -168,11 +170,10 @@ where
         w / n + c * ((parent_visits as f32).ln() / n).sqrt()
     }
 
-    fn update(self, action: Self::GameAction) -> Self;
+    fn update(self, action: Self::Action) -> Self;
     fn outcome(&self) -> Option<Vec<(Self::Player, f32)>>;
-    fn action_iter(&self) -> Vec<Self::GameAction>;
     fn current_player(&self) -> Self::Player;
-    fn previous_move(&self) -> Option<&(Self::Player, Self::GameAction)>;
+    fn previous_move(&self) -> Option<&(Self::Player, Self::Action)>;
 
     fn rollout<R, const OUTPUT: usize>(self, rng: &mut R) -> Option<Vec<(Self::Player, f32)>>
     where
@@ -192,7 +193,11 @@ where
                     Some(actions.swap_remove(index))
                 }
             }?;
-            state = state.update(action);
+            state = state.update(action.1);
         }
     }
+}
+
+pub struct GameScore<P> {
+    map: HashMap<P, f32>,
 }
