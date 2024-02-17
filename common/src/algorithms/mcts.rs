@@ -90,9 +90,9 @@ impl<T: GameState + Clone> MonteCarloTree<T> {
         // add all nodes to the tree from this node.
         let parent = self.tree.get(node)?.data().clone();
         for child in parent
-            .action_iter()
+            .actions()
             .into_iter()
-            .map(|(_, action)| parent.clone().update(action))
+            .map(|(_, action)| parent.clone().update(action.clone()))
         {
             self.tree.insert(child, Some(node));
         }
@@ -146,13 +146,13 @@ pub trait GameState
 where
     Self: Sized,
 {
-    type Player: PartialEq;
-    type Action: PartialEq;
-    type PlayerIter: IntoIterator<Item = Self::Player>;
-    type ActionIter: IntoIterator<Item = (Self::Player, Self::Action)>;
+    type Player: Clone + PartialEq;
+    type Action: Clone + PartialEq;
 
-    fn player_iter(&self) -> Self::PlayerIter;
-    fn action_iter(&self) -> Self::ActionIter;
+    fn players(&self) -> Vec<Self::Player>;
+    fn actions(&self) -> Vec<(Self::Player, Self::Action)>;
+    fn step(&self, events: Vec<(Self::Player, Self::Action)>) -> Self;
+    fn reward(&self) -> Option<HashMap<Self::Player, f32>>;
 
     // these are here temporarily, but probably belong at the `Node` level.
     fn score(&self) -> Vec<(Self::Player, f32)>;
@@ -185,7 +185,7 @@ where
                 return Some(outcome);
             }
             let action = {
-                let mut actions = state.action_iter().into_iter().collect::<Vec<_>>();
+                let mut actions = state.actions().to_vec();
                 if actions.is_empty() {
                     None
                 } else {

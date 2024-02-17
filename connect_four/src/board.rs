@@ -1,6 +1,9 @@
 use common::GameState;
 use nanorand::Rng;
-use std::fmt::{Debug, Display};
+use std::{
+    collections::HashMap,
+    fmt::{Debug, Display},
+};
 
 #[derive(Debug, Clone)]
 pub struct Game {
@@ -39,11 +42,21 @@ impl Game {
 impl GameState for Game {
     type Player = Checker;
     type Action = usize;
-    type PlayerIter = Vec<Self::Player>;
-    type ActionIter = Vec<(Self::Player, Self::Action)>;
 
-    fn player_iter(&self) -> Self::PlayerIter {
+    fn players(&self) -> Vec<Self::Player> {
         vec![Checker::Red, Checker::Yellow]
+    }
+
+    fn actions(&self) -> Vec<(Self::Player, Self::Action)> {
+        self.board.available_moves()
+    }
+
+    fn step(&self, events: Vec<(Self::Player, Self::Action)>) -> Self {
+        todo!()
+    }
+
+    fn reward(&self) -> Option<HashMap<Self::Player, f32>> {
+        todo!()
     }
 
     fn score(&self) -> Vec<(Self::Player, f32)> {
@@ -68,10 +81,6 @@ impl GameState for Game {
 
     fn previous_move(&self) -> Option<&(Self::Player, Self::Action)> {
         self.previous_move.as_ref()
-    }
-
-    fn action_iter(&self) -> Vec<(Self::Player, Self::Action)> {
-        self.board.available_moves()
     }
 
     fn update(self, action: Self::Action) -> Self {
