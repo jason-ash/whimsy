@@ -1,6 +1,12 @@
 use crate::{collections::NodeId, Tree};
 use nanorand::Rng;
-use std::{cmp::Ordering, collections::HashMap, fmt::Debug};
+use std::{
+    cmp::Ordering,
+    collections::HashMap,
+    fmt::Debug,
+    hash::Hash,
+    ops::{Add, AddAssign},
+};
 
 pub struct MonteCarloTree<T: GameState> {
     pub tree: Tree<T>,
@@ -195,6 +201,42 @@ where
                 }
             }?;
             state = state.step(player, action)
+        }
+    }
+}
+
+pub struct GameScore<T, U>
+where
+    T: Hash + Eq + PartialEq + Clone,
+    U: Default + Copy + Add<Output = U>,
+{
+    map: HashMap<T, U>,
+}
+
+impl<T, U> Add for GameScore<T, U>
+where
+    T: Hash + Eq + PartialEq + Clone,
+    U: Default + Copy + Add<Output = U> + AddAssign,
+{
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let mut map = self.map.clone();
+        for (key, value) in rhs.map.into_iter() {
+            *map.entry(key).or_default() += value;
+        }
+        Self { map }
+    }
+}
+
+impl<T, U> Default for GameScore<T, U>
+where
+    T: Hash + Eq + PartialEq + Clone,
+    U: Default + Copy + Add<Output = U> + AddAssign,
+{
+    fn default() -> Self {
+        Self {
+            map: HashMap::default(),
         }
     }
 }
