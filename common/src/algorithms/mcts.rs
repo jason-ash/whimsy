@@ -92,14 +92,14 @@ impl<T: GameState + Clone> MonteCarloTree<T> {
         for child in parent
             .actions()
             .into_iter()
-            .map(|(_, action)| parent.clone().update(action.clone()))
+            .map(|(player, action)| parent.clone().step(player, action))
         {
             self.tree.insert(child, Some(node));
         }
         Some(())
     }
 
-    pub fn backpropagate(&mut self, node: NodeId, outcome: Vec<(T::Player, f32)>) -> Option<()> {
+    pub fn backpropagate(&mut self, node: NodeId, outcome: HashMap<T::Player, f32>) -> Option<()> {
         // given a node and a rollout outcome, propagate the value backwards to the tree root.
 
         let mut node_id = Some(node);
@@ -144,14 +144,14 @@ pub trait MonteCarloNode<T: GameState> {
 
 pub trait GameState
 where
-    Self: Sized,
+    Self: Sized + Clone,
 {
     type Player: Clone + PartialEq;
     type Action: Clone + PartialEq;
 
     fn players(&self) -> Vec<Self::Player>;
     fn actions(&self) -> Vec<(Self::Player, Self::Action)>;
-    fn step(&self, events: Vec<(Self::Player, Self::Action)>) -> Self;
+    fn step(&self, player: Self::Player, action: Self::Action) -> Self;
     fn reward(&self) -> Option<HashMap<Self::Player, f32>>;
 
     // these are here temporarily, but probably belong at the `Node` level.
@@ -164,28 +164,29 @@ where
         let w = self
             .score()
             .into_iter()
-            .find(|(p, s)| p == player)
+            .find(|(p, _)| p == player)
             .map(|(_, s)| s)
             .unwrap_or_default();
         w / n + c * ((parent_visits as f32).ln() / n).sqrt()
     }
 
-    fn update(self, action: Self::Action) -> Self;
+    // fn update(self, action: Self::Action) -> Self;
     fn outcome(&self) -> Option<Vec<(Self::Player, f32)>>;
     fn current_player(&self) -> Self::Player;
     fn previous_move(&self) -> Option<&(Self::Player, Self::Action)>;
 
-    fn rollout<R, const OUTPUT: usize>(self, rng: &mut R) -> Option<Vec<(Self::Player, f32)>>
+    fn rollout<R, const OUTPUT: usize>(&self, rng: &mut R) -> Option<HashMap<Self::Player, f32>>
     where
         R: Rng<OUTPUT>,
     {
-        let mut state = self;
+        let mut state = self.clone();
         loop {
-            if let Some(outcome) = state.outcome() {
-                return Some(outcome);
+            if let Some(scores) = state.reward() {
+                return Some(scores);
             }
-            let action = {
-                let mut actions = state.actions().to_vec();
+
+            let (player, action) = {
+                let mut actions = self.actions();
                 if actions.is_empty() {
                     None
                 } else {
@@ -193,11 +194,7 @@ where
                     Some(actions.swap_remove(index))
                 }
             }?;
-            state = state.update(action.1);
+            state = state.step(player, action)
         }
     }
-}
-
-pub struct GameScore<P> {
-    map: HashMap<P, f32>,
 }

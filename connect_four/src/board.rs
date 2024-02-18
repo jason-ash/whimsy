@@ -51,8 +51,8 @@ impl GameState for Game {
         self.board.available_moves()
     }
 
-    fn step(&self, events: Vec<(Self::Player, Self::Action)>) -> Self {
-        todo!()
+    fn step(&self, player: Self::Player, action: Self::Action) -> Self {
+        self.clone().update(action.clone())
     }
 
     fn reward(&self) -> Option<HashMap<Self::Player, f32>> {
@@ -81,10 +81,6 @@ impl GameState for Game {
 
     fn previous_move(&self) -> Option<&(Self::Player, Self::Action)> {
         self.previous_move.as_ref()
-    }
-
-    fn update(self, action: Self::Action) -> Self {
-        self.update(action)
     }
 
     fn outcome(&self) -> Option<Vec<(Self::Player, f32)>> {
