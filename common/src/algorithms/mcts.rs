@@ -205,12 +205,13 @@ where
     }
 }
 
+#[derive(Debug, PartialEq, Eq)]
 pub struct GameScore<T, U>
 where
     T: Hash + Eq + PartialEq + Clone,
     U: Default + Copy + Add<Output = U>,
 {
-    map: HashMap<T, U>,
+    pub map: HashMap<T, U>,
 }
 
 impl<T, U> Add for GameScore<T, U>
@@ -238,5 +239,42 @@ where
         Self {
             map: HashMap::default(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn game_score_add_ok() {
+        let a = {
+            let mut score = GameScore::<usize, f32>::default();
+            score.map.insert(0, 0.0);
+            score.map.insert(1, 0.5);
+            score.map.insert(2, 0.75);
+            score.map.insert(3, 0.25);
+            score.map.insert(4, 1.0);
+            score
+        };
+        let b = {
+            let mut score = GameScore::<usize, f32>::default();
+            score.map.insert(0, 0.5);
+            score.map.insert(2, 0.5);
+            score.map.insert(4, 0.25);
+            score.map.insert(5, 0.75);
+            score
+        };
+        let expected = {
+            let mut score = GameScore::<usize, f32>::default();
+            score.map.insert(0, 0.5);
+            score.map.insert(1, 0.5);
+            score.map.insert(2, 1.25);
+            score.map.insert(3, 0.25);
+            score.map.insert(4, 1.25);
+            score.map.insert(5, 0.75);
+            score
+        };
+        assert_eq!(a + b, expected);
     }
 }
