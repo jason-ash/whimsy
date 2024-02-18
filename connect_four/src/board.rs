@@ -56,7 +56,7 @@ impl GameState for Game {
     }
 
     fn reward(&self) -> Option<GameScore<Self::Player, f32>> {
-        todo!()
+        self.board.reward()
     }
 
     fn score(&self) -> GameScore<Self::Player, f32> {
@@ -133,6 +133,30 @@ impl Board<Option<Checker>> {
             let (player, action) = moves[idx].clone();
             self.play_move(player, action)
         }
+    }
+
+    pub fn reward(&self) -> Option<GameScore<Checker, f32>> {
+        FOURS.into_iter().find_map(|indices| {
+            let first = self.cells[indices[0]].as_ref()?;
+            if indices
+                .into_iter()
+                .map(|idx| self.cells[idx].as_ref())
+                .all(|cell| cell == Some(first))
+            {
+                let mut score = GameScore::default();
+                match first {
+                    Checker::Red => {
+                        score.map.insert(Checker::Red, 1.0);
+                    }
+                    Checker::Yellow => {
+                        score.map.insert(Checker::Yellow, 1.0);
+                    }
+                }
+                Some(score)
+            } else {
+                None
+            }
+        })
     }
 
     pub fn outcome(&self) -> Option<Vec<(Checker, f32)>> {

@@ -163,7 +163,6 @@ where
         w / n + c * ((parent_visits as f32).ln() / n).sqrt()
     }
 
-    // fn update(self, action: Self::Action) -> Self;
     fn outcome(&self) -> Option<Vec<(Self::Player, f32)>>;
     fn current_player(&self) -> Self::Player;
     fn previous_move(&self) -> Option<&(Self::Player, Self::Action)>;
