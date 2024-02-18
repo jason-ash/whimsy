@@ -1,3 +1,3 @@
 mod mcts;
 
-pub use mcts::{GameState, MonteCarloTree};
+pub use mcts::{GameScore, GameState, MonteCarloTree};

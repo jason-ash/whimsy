@@ -1,4 +1,4 @@
-use common::GameState;
+use common::{GameScore, GameState};
 use nanorand::Rng;
 use std::{
     collections::HashMap,
@@ -9,7 +9,7 @@ use std::{
 pub struct Game {
     board: Board<Option<Checker>>,
     previous_move: Option<(Checker, usize)>,
-    score: Vec<(Checker, f32)>,
+    score: GameScore<Checker, f32>,
     visits: u32,
 }
 
@@ -18,7 +18,7 @@ impl Default for Game {
         Self {
             board: Board::<Option<Checker>>::default(),
             previous_move: None,
-            score: vec![(Checker::Red, 0.0), (Checker::Yellow, 0.0)],
+            score: GameScore::default(),
             visits: 0,
         }
     }
@@ -55,15 +55,15 @@ impl GameState for Game {
         self.clone().update(action.clone())
     }
 
-    fn reward(&self) -> Option<HashMap<Self::Player, f32>> {
+    fn reward(&self) -> Option<GameScore<Self::Player, f32>> {
         todo!()
     }
 
-    fn score(&self) -> Vec<(Self::Player, f32)> {
-        self.score.clone()
+    fn score(&self) -> GameScore<Self::Player, f32> {
+        self.score().clone()
     }
 
-    fn set_score(&mut self, score: Vec<(Self::Player, f32)>) {
+    fn set_score(&mut self, score: GameScore<Self::Player, f32>) {
         self.score = score;
     }
 
@@ -182,7 +182,7 @@ impl<T: Debug + Clone + PartialEq> Board<Option<T>> {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Checker {
     Red,
     Yellow,

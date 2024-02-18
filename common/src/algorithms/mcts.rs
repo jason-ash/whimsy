@@ -105,26 +105,18 @@ impl<T: GameState + Clone> MonteCarloTree<T> {
         Some(())
     }
 
-    pub fn backpropagate(&mut self, node: NodeId, outcome: HashMap<T::Player, f32>) -> Option<()> {
+    pub fn backpropagate(
+        &mut self,
+        node: NodeId,
+        outcome: GameScore<T::Player, f32>,
+    ) -> Option<()> {
         // given a node and a rollout outcome, propagate the value backwards to the tree root.
 
         let mut node_id = Some(node);
 
         while let Some(id) = node_id {
             let node = self.tree.get_mut(id)?;
-
-            let score = node
-                .data()
-                .score()
-                .into_iter()
-                .map(|(p1, s1)| {
-                    let s2 = outcome
-                        .iter()
-                        .find_map(|(p2, s2)| if &p1 == p2 { Some(s2) } else { None })
-                        .unwrap_or(&0.0);
-                    (p1, s1 + s2)
-                })
-                .collect::<Vec<_>>();
+            let score = node.data().score() + outcome.clone();
 
             // set score and visits
             node.data_mut().set_score(score);
@@ -152,27 +144,22 @@ pub trait GameState
 where
     Self: Sized + Clone,
 {
-    type Player: Clone + PartialEq;
+    type Player: Hash + Eq + PartialEq + Clone;
     type Action: Clone + PartialEq;
 
     fn players(&self) -> Vec<Self::Player>;
     fn actions(&self) -> Vec<(Self::Player, Self::Action)>;
     fn step(&self, player: Self::Player, action: Self::Action) -> Self;
-    fn reward(&self) -> Option<HashMap<Self::Player, f32>>;
+    fn reward(&self) -> Option<GameScore<Self::Player, f32>>;
 
     // these are here temporarily, but probably belong at the `Node` level.
-    fn score(&self) -> Vec<(Self::Player, f32)>;
-    fn set_score(&mut self, score: Vec<(Self::Player, f32)>);
+    fn score(&self) -> GameScore<Self::Player, f32>;
+    fn set_score(&mut self, score: GameScore<Self::Player, f32>);
     fn visits(&self) -> u32;
     fn set_visits(&mut self, visits: u32);
     fn uct(&self, player: &Self::Player, c: f32, parent_visits: u32) -> f32 {
         let n = self.visits() as f32;
-        let w = self
-            .score()
-            .into_iter()
-            .find(|(p, _)| p == player)
-            .map(|(_, s)| s)
-            .unwrap_or_default();
+        let w = self.score().map.get(player).cloned().unwrap_or_default();
         w / n + c * ((parent_visits as f32).ln() / n).sqrt()
     }
 
@@ -181,7 +168,7 @@ where
     fn current_player(&self) -> Self::Player;
     fn previous_move(&self) -> Option<&(Self::Player, Self::Action)>;
 
-    fn rollout<R, const OUTPUT: usize>(&self, rng: &mut R) -> Option<HashMap<Self::Player, f32>>
+    fn rollout<R, const OUTPUT: usize>(&self, rng: &mut R) -> Option<GameScore<Self::Player, f32>>
     where
         R: Rng<OUTPUT>,
     {
@@ -205,7 +192,7 @@ where
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GameScore<T, U>
 where
     T: Hash + Eq + PartialEq + Clone,
