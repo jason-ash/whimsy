@@ -59,10 +59,6 @@ impl<T: GameState + Clone> MonteCarloTree<T> {
         Some(())
     }
 
-    pub fn ponder(&mut self, node: Option<NodeId>, iterations: usize) {
-        todo!()
-    }
-
     pub fn best_action(&self, node: NodeId) -> Option<T::Action> {
         // select the child node that maximizes uct
         todo!()
@@ -163,7 +159,6 @@ where
         w / n + c * ((parent_visits as f32).ln() / n).sqrt()
     }
 
-    fn outcome(&self) -> Option<Vec<(Self::Player, f32)>>;
     fn current_player(&self) -> Self::Player;
     fn previous_move(&self) -> Option<&(Self::Player, Self::Action)>;
 

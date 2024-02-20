@@ -82,10 +82,6 @@ impl GameState for Game {
     fn previous_move(&self) -> Option<&(Self::Player, Self::Action)> {
         self.previous_move.as_ref()
     }
-
-    fn outcome(&self) -> Option<Vec<(Self::Player, f32)>> {
-        self.board.outcome()
-    }
 }
 
 /// the Connect Four board. contains cells numbered 0 through 41.
@@ -153,24 +149,6 @@ impl Board<Option<Checker>> {
                     }
                 }
                 Some(score)
-            } else {
-                None
-            }
-        })
-    }
-
-    pub fn outcome(&self) -> Option<Vec<(Checker, f32)>> {
-        FOURS.into_iter().find_map(|indices| {
-            let first = self.cells[indices[0]].as_ref()?;
-            if indices
-                .into_iter()
-                .map(|idx| self.cells[idx].as_ref())
-                .all(|cell| cell == Some(first))
-            {
-                match first {
-                    Checker::Red => Some(vec![(Checker::Red, 1.0), (Checker::Yellow, 0.0)]),
-                    Checker::Yellow => Some(vec![(Checker::Red, 0.0), (Checker::Yellow, 1.0)]),
-                }
             } else {
                 None
             }
