@@ -1,9 +1,6 @@
 use common::{GameScore, GameState};
 use nanorand::Rng;
-use std::{
-    collections::HashMap,
-    fmt::{Debug, Display},
-};
+use std::fmt::{Debug, Display};
 
 #[derive(Debug, Clone)]
 pub struct Game {
