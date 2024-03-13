@@ -2,6 +2,7 @@
 resolver = "2"
 members = [
     "common",
-    "connect_four",
+    "connect-four",
+    "digit-party",
     "wordle",
 ]
