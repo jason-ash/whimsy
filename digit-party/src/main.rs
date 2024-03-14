@@ -1,3 +1,6 @@
+use digit_party::GameState;
+
 fn main() {
-    println!("Hello, world!");
+    let game = GameState::new();
+    println!("{:?}", game);
 }

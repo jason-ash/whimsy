@@ -10,10 +10,17 @@ dependencies = [
 ]
 
 [[package]]
-name = "connect_four"
+name = "connect-four"
 version = "0.1.0"
 dependencies = [
  "common",
+ "nanorand",
+]
+
+[[package]]
+name = "digit-party"
+version = "0.1.0"
+dependencies = [
  "nanorand",
 ]
 
