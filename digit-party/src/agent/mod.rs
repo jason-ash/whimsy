@@ -22,4 +22,8 @@ pub trait Agent {
 
         game
     }
+
+    fn play_many(&mut self, n: usize) -> Vec<GameState> {
+        (0..n).map(|_| self.play()).collect()
+    }
 }

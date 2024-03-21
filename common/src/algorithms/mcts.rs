@@ -106,7 +106,7 @@ pub mod old {
                         a.1.data()
                             .uct(&player, c, parent_visits)
                             .partial_cmp(&b.1.data().uct(&player, c, parent_visits))
-                            .unwrap_or_else(|| Ordering::Equal)
+                            .unwrap_or(Ordering::Equal)
                     })
                     .map(|(id, _)| id)?;
             }
