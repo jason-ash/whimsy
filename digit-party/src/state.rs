@@ -63,6 +63,10 @@ impl GameState {
             .enumerate()
             .filter_map(|(i, x)| if x.is_none() { Some(i) } else { None })
     }
+
+    pub fn child_states(&self) -> impl Iterator<Item = Self> + '_ {
+        self.open_indices().map(|idx| self.step(idx))
+    }
 }
 
 impl Default for GameState {

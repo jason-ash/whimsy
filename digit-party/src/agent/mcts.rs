@@ -1,10 +1,14 @@
 use crate::{Agent, GameState};
 use nanorand::{Rng, WyRand};
-use petgraph::Graph;
+use petgraph::{
+    graph::{node_index, NodeIndex},
+    Direction::Outgoing,
+    Graph,
+};
 
 #[derive(Debug)]
 pub struct MonteCarloAgent {
-    rng: WyRand,
+    pub rng: WyRand,
     pub graph: Graph<MonteCarloNode, MonteCarloEdge>,
 }
 
@@ -25,13 +29,42 @@ impl MonteCarloAgent {
     }
 
     /// find the next node to explore
-    pub fn select(&self) -> Option<&MonteCarloNode> {
-        todo!()
+    pub fn select(&self) -> NodeIndex {
+        let mut current = node_index(0);
+        let parent_visits = 3;
+        while let Some(node) = self
+            .graph
+            .neighbors_directed(current, Outgoing)
+            .max_by(|a, b| {
+                let a = self.graph.node_weight(*a).unwrap();
+                let b = self.graph.node_weight(*b).unwrap();
+                a.uct(2.0, parent_visits)
+                    .partial_cmp(&b.uct(2.0, parent_visits))
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            })
+        {
+            current = node;
+        }
+        current
     }
 
     /// add nodes and edges to the graph
-    pub fn expand(&mut self) {
-        todo!()
+    pub fn expand(&mut self, node_id: NodeIndex) -> Option<()> {
+        let state = self
+            .graph
+            .node_weight(node_id)
+            .map(|node| node.state.clone())?;
+
+        for action in state.open_indices() {
+            let state = state.step(action);
+            let node_weight = MonteCarloNode::new(state);
+            let edge_weight = MonteCarloEdge::new(action);
+
+            let child_id = self.graph.add_node(node_weight);
+            let _ = self.graph.add_edge(node_id, child_id, edge_weight);
+        }
+
+        Some(())
     }
 
     pub fn backpropagate(&mut self) {
@@ -58,7 +91,7 @@ impl Agent for MonteCarloAgent {
 pub struct MonteCarloNode {
     pub state: GameState,
     pub visits: u32,
-    pub score: f32,
+    pub score: u32,
 }
 
 impl MonteCarloNode {
@@ -66,12 +99,27 @@ impl MonteCarloNode {
         Self {
             state,
             visits: 0,
-            score: 0.0,
+            score: 0,
         }
     }
 
-    pub fn rollout(&self) -> f32 {
-        todo!()
+    pub fn uct(&self, c: f32, parent_visits: u32) -> f32 {
+        nanorand::tls_rng().generate_range(0..100) as f32
+    }
+
+    /// play randomly until the end of the game, returning the final score
+    pub fn rollout(&self, rng: &mut WyRand) -> u32 {
+        let mut game = self.state.clone();
+        loop {
+            if game.is_complete() {
+                break;
+            }
+
+            let actions = game.open_indices().collect::<Vec<_>>();
+            let idx = rng.generate_range(0..actions.len());
+            game = game.step(actions[idx]);
+        }
+        game.score()
     }
 }
 
@@ -80,7 +128,7 @@ impl Default for MonteCarloNode {
         Self {
             state: GameState::default(),
             visits: 0,
-            score: 0.0,
+            score: 0,
         }
     }
 }
