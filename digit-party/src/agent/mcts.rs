@@ -2,9 +2,10 @@ use crate::{Agent, GameState};
 use nanorand::{Rng, WyRand};
 use petgraph::{
     graph::{node_index, NodeIndex},
-    Direction::Outgoing,
+    Direction::{Incoming, Outgoing},
     Graph,
 };
+use std::cmp::Ordering;
 
 #[derive(Debug)]
 pub struct MonteCarloAgent {
@@ -29,46 +30,64 @@ impl MonteCarloAgent {
     }
 
     /// find the next node to explore
-    pub fn select(&self) -> NodeIndex {
+    pub fn select(&self, c: f32) -> NodeIndex {
         let mut current = node_index(0);
-        let parent_visits = 3;
-        while let Some(node) = self
-            .graph
-            .neighbors_directed(current, Outgoing)
-            .max_by(|a, b| {
-                let a = self.graph.node_weight(*a).unwrap();
-                let b = self.graph.node_weight(*b).unwrap();
-                a.uct(2.0, parent_visits)
-                    .partial_cmp(&b.uct(2.0, parent_visits))
-                    .unwrap_or(std::cmp::Ordering::Equal)
-            })
-        {
-            current = node;
+
+        loop {
+            let visits = self
+                .graph
+                .node_weight(current)
+                .map(|node| node.visits)
+                .expect("to find a valid node.");
+
+            let children = self
+                .graph
+                .neighbors_directed(current, Outgoing)
+                .filter_map(|node_id| self.graph.node_weight(node_id).map(|node| (node_id, node)))
+                .map(|(node_id, node)| (node_id, node.uct(c, visits)));
+
+            match children.max_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(Ordering::Equal)) {
+                Some((child_id, _)) => current = child_id,
+                None => return current,
+            }
         }
-        current
     }
 
-    /// add nodes and edges to the graph
-    pub fn expand(&mut self, node_id: NodeIndex) -> Option<()> {
+    pub fn expand(&mut self, node_id: NodeIndex) {
         let state = self
             .graph
             .node_weight(node_id)
-            .map(|node| node.state.clone())?;
+            .expect("to find a valid node.")
+            .state
+            .clone();
 
         for action in state.open_indices() {
             let state = state.step(action);
             let node_weight = MonteCarloNode::new(state);
             let edge_weight = MonteCarloEdge::new(action);
-
             let child_id = self.graph.add_node(node_weight);
             let _ = self.graph.add_edge(node_id, child_id, edge_weight);
         }
-
-        Some(())
     }
 
-    pub fn backpropagate(&mut self) {
-        todo!()
+    pub fn backpropagate(&mut self, node_id: NodeIndex, score: u32) {
+        // starting at a given node, update the score and visits for all ancestors
+        let mut current = node_id;
+
+        loop {
+            let node = self
+                .graph
+                .node_weight_mut(current)
+                .expect("to find a valid node.");
+
+            node.visits += 1;
+            node.score += score;
+
+            match self.graph.neighbors_directed(current, Incoming).next() {
+                Some(parent_id) => current = parent_id,
+                None => break,
+            }
+        }
     }
 }
 
@@ -77,7 +96,6 @@ impl Default for MonteCarloAgent {
         Self::new()
     }
 }
-
 impl Agent for MonteCarloAgent {
     fn step(&mut self, game: &GameState) -> usize {
         // temporarily use a random index
@@ -104,7 +122,15 @@ impl MonteCarloNode {
     }
 
     pub fn uct(&self, c: f32, parent_visits: u32) -> f32 {
-        nanorand::tls_rng().generate_range(0..100) as f32
+        let n = self.visits as f32;
+        let w = self.score as f32;
+        let p = parent_visits as f32;
+
+        if n == 0.0 {
+            f32::INFINITY
+        } else {
+            w / n + c * (p.ln() / n).sqrt()
+        }
     }
 
     /// play randomly until the end of the game, returning the final score
