@@ -72,21 +72,16 @@ impl MonteCarloAgent {
 
     pub fn backpropagate(&mut self, node_id: NodeIndex, score: u32) {
         // starting at a given node, update the score and visits for all ancestors
-        let mut current = node_id;
+        let node = self
+            .graph
+            .node_weight_mut(node_id)
+            .expect("to find a valid node.");
+        node.visits += 1;
+        node.score += score;
 
-        loop {
-            let node = self
-                .graph
-                .node_weight_mut(current)
-                .expect("to find a valid node.");
-
-            node.visits += 1;
-            node.score += score;
-
-            match self.graph.neighbors_directed(current, Incoming).next() {
-                Some(parent_id) => current = parent_id,
-                None => break,
-            }
+        match self.graph.neighbors_directed(node_id, Incoming).next() {
+            Some(parent_id) => self.backpropagate(parent_id, score),
+            None => (),
         }
     }
 }
