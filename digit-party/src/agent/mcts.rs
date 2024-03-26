@@ -123,12 +123,12 @@ impl MonteCarloNode {
 
     pub fn uct(&self, c: f32, parent_visits: u32) -> f32 {
         let n = self.visits as f32;
-        let w = self.score as f32;
-        let p = parent_visits as f32;
 
         if n == 0.0 {
             f32::INFINITY
         } else {
+            let w = self.score as f32;
+            let p = parent_visits as f32;
             w / n + c * (p.ln() / n).sqrt()
         }
     }
