@@ -1,4 +1,3 @@
-use common::{GameScore, GameState};
 use nanorand::Rng;
 use std::fmt::{Debug, Display};
 
@@ -6,7 +5,7 @@ use std::fmt::{Debug, Display};
 pub struct Game {
     board: Board<Option<Checker>>,
     previous_move: Option<(Checker, usize)>,
-    score: GameScore<Checker, f32>,
+    score: (Checker, f32),
     visits: u32,
 }
 
@@ -15,7 +14,7 @@ impl Default for Game {
         Self {
             board: Board::<Option<Checker>>::default(),
             previous_move: None,
-            score: GameScore::default(),
+            score: (Checker::default(), 0.0),
             visits: 0,
         }
     }
@@ -36,50 +35,47 @@ impl Game {
     }
 }
 
-impl GameState for Game {
-    type Player = Checker;
-    type Action = usize;
-
-    fn players(&self) -> Vec<Self::Player> {
-        vec![Checker::Red, Checker::Yellow]
-    }
-
-    fn actions(&self) -> Vec<(Self::Player, Self::Action)> {
-        self.board.available_moves()
-    }
-
-    fn step(&self, player: Self::Player, action: Self::Action) -> Self {
-        self.clone().update(action.clone())
-    }
-
-    fn reward(&self) -> Option<GameScore<Self::Player, f32>> {
-        self.board.reward()
-    }
-
-    fn score(&self) -> GameScore<Self::Player, f32> {
-        self.score().clone()
-    }
-
-    fn set_score(&mut self, score: GameScore<Self::Player, f32>) {
-        self.score = score;
-    }
-
-    fn visits(&self) -> u32 {
-        self.visits
-    }
-
-    fn set_visits(&mut self, visits: u32) {
-        self.visits = visits;
-    }
-
-    fn current_player(&self) -> Self::Player {
-        self.board.current_player().unwrap()
-    }
-
-    fn previous_move(&self) -> Option<&(Self::Player, Self::Action)> {
-        self.previous_move.as_ref()
-    }
-}
+// impl Game {
+//     fn players(&self) -> Vec<Self::Player> {
+//         vec![Checker::Red, Checker::Yellow]
+//     }
+//
+//     fn actions(&self) -> Vec<(Self::Player, Self::Action)> {
+//         self.board.available_moves()
+//     }
+//
+//     fn step(&self, player: Self::Player, action: Self::Action) -> Self {
+//         self.clone().update(action.clone())
+//     }
+//
+//     fn reward(&self) -> Option<GameScore<Self::Player, f32>> {
+//         self.board.reward()
+//     }
+//
+//     fn score(&self) -> GameScore<Self::Player, f32> {
+//         self.score().clone()
+//     }
+//
+//     fn set_score(&mut self, score: GameScore<Self::Player, f32>) {
+//         self.score = score;
+//     }
+//
+//     fn visits(&self) -> u32 {
+//         self.visits
+//     }
+//
+//     fn set_visits(&mut self, visits: u32) {
+//         self.visits = visits;
+//     }
+//
+//     fn current_player(&self) -> Self::Player {
+//         self.board.current_player().unwrap()
+//     }
+//
+//     fn previous_move(&self) -> Option<&(Self::Player, Self::Action)> {
+//         self.previous_move.as_ref()
+//     }
+// }
 
 /// the Connect Four board. contains cells numbered 0 through 41.
 /// |  0 |  1 |  2 |  3 |  4 |  5 |  6 |
@@ -128,7 +124,7 @@ impl Board<Option<Checker>> {
         }
     }
 
-    pub fn reward(&self) -> Option<GameScore<Checker, f32>> {
+    pub fn reward(&self) -> Option<(Checker, f32)> {
         FOURS.into_iter().find_map(|indices| {
             let first = self.cells[indices[0]].as_ref()?;
             if indices
@@ -136,15 +132,11 @@ impl Board<Option<Checker>> {
                 .map(|idx| self.cells[idx].as_ref())
                 .all(|cell| cell == Some(first))
             {
-                let mut score = GameScore::default();
+                let mut score = (Checker::default(), 0.0);
                 match first {
-                    Checker::Red => {
-                        score.map.insert(Checker::Red, 1.0);
-                    }
-                    Checker::Yellow => {
-                        score.map.insert(Checker::Yellow, 1.0);
-                    }
-                }
+                    Checker::Red => (Checker::Red, 1.0),
+                    Checker::Yellow => (Checker::Yellow, 1.0),
+                };
                 Some(score)
             } else {
                 None

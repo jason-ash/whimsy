@@ -11,8 +11,8 @@ fn main() {
     agent.expand(root);
     // println!("{:?}", agent);
 
-    let best = agent.select(2.0);
-    println!("{:?}", best);
+    // let best = agent.select(2.0);
+    // println!("{:?}", best);
 
     let games = agent.play_many(10_000);
     let scores = games.iter().map(|game| game.score()).collect::<Vec<_>>();

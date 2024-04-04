@@ -1,56 +1,60 @@
-use crate::{Agent, GameState};
+use crate::{
+    error::{Error, Result},
+    Agent, GameState,
+};
 use nanorand::{Rng, WyRand};
 use petgraph::{
     graph::{node_index, NodeIndex},
+    visit::Bfs,
     Direction::{Incoming, Outgoing},
     Graph,
 };
 use std::cmp::Ordering;
 
+impl Agent for MonteCarloAgent {
+    fn step(&mut self, game: &GameState) -> usize {
+        todo!()
+    }
+}
+
+#[derive(Debug)]
+pub enum MonteCarloTimeBudget {
+    Iterations(usize),
+    Duration(std::time::Duration),
+}
+
 #[derive(Debug)]
 pub struct MonteCarloAgent {
     pub rng: WyRand,
     pub graph: Graph<MonteCarloNode, MonteCarloEdge>,
+    pub budget: MonteCarloTimeBudget,
 }
 
 impl MonteCarloAgent {
-    pub fn new() -> Self {
+    pub fn new(budget: MonteCarloTimeBudget) -> Self {
         let seed = nanorand::tls_rng().generate();
-        Self::seed_from_u64(seed)
+        Self::seed_from_u64(seed, budget)
     }
 
-    pub fn seed_from_u64(seed: u64) -> Self {
+    pub fn seed_from_u64(seed: u64, budget: MonteCarloTimeBudget) -> Self {
         let mut graph = Graph::default();
         graph.add_node(MonteCarloNode::default());
 
         Self {
             rng: WyRand::new_seed(seed),
             graph,
+            budget,
         }
     }
 
+    pub fn step(&mut self, state: &GameState) {
+        let mut bfs = Bfs::new(&self.graph, node_index(0));
+        todo!()
+    }
+
     /// find the next node to explore
-    pub fn select(&self, c: f32) -> NodeIndex {
-        let mut current = node_index(0);
-
-        loop {
-            let visits = self
-                .graph
-                .node_weight(current)
-                .map(|node| node.visits)
-                .expect("to find a valid node.");
-
-            let children = self
-                .graph
-                .neighbors_directed(current, Outgoing)
-                .filter_map(|node_id| self.graph.node_weight(node_id).map(|node| (node_id, node)))
-                .map(|(node_id, node)| (node_id, node.uct(c, visits)));
-
-            match children.max_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(Ordering::Equal)) {
-                Some((child_id, _)) => current = child_id,
-                None => return current,
-            }
-        }
+    pub fn select(&self, node_id: NodeIndex, c: f32) -> Result<NodeIndex> {
+        todo!()
     }
 
     pub fn expand(&mut self, node_id: NodeIndex) {
@@ -88,15 +92,8 @@ impl MonteCarloAgent {
 
 impl Default for MonteCarloAgent {
     fn default() -> Self {
-        Self::new()
-    }
-}
-impl Agent for MonteCarloAgent {
-    fn step(&mut self, game: &GameState) -> usize {
-        // temporarily use a random index
-        let open = game.open_indices().collect::<Vec<_>>();
-        let idx = self.rng.generate_range(0..open.len());
-        open[idx]
+        let budget = MonteCarloTimeBudget::Duration(std::time::Duration::from_millis(1000));
+        Self::new(budget)
     }
 }
 
