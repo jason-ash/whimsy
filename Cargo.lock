@@ -71,5 +71,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "tic-tac-toe"
+version = "0.1.0"
+dependencies = [
+ "common",
+ "petgraph",
+]
+
+[[package]]
 name = "wordle"
 version = "0.1.0"

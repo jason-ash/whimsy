@@ -4,5 +4,6 @@ members = [
     "common",
     "connect-four",
     "digit-party",
+    "tic-tac-toe",
     "wordle",
 ]
